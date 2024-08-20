@@ -6,9 +6,16 @@ const cors = require('cors');
 const app = express();
 const port = 5000;
 
+// CORS configuration
+const corsOptions = {
+  origin: 'http://localhost:5173', // Allow requests from your frontend URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type'],
+};
+
 // Middleware
 app.use(bodyParser.json());
-app.use(cors());
+app.use(cors(corsOptions)); // Apply CORS middleware with options
 
 // Initialize SQLite database
 const db = new sqlite3.Database('todo.db');
@@ -61,30 +68,28 @@ app.put('/todos/:id', (req, res) => {
 
   const stmt = db.prepare("UPDATE todos SET title = ?, body = ?, isComplete = ? WHERE id = ?");
   stmt.run(title, body, isCompleteValue, id, function(err) {
+    if (err) {
+      console.error('Error updating todo:', err);
+      return res.status(500).json({ error: err.message });
+    }
+
+    // Setelah pembaruan, ambil data todo yang diperbarui dari database
+    db.get("SELECT * FROM todos WHERE id = ?", [id], (err, row) => {
       if (err) {
-          console.error('Error updating todo:', err);
-          return res.status(500).json({ error: err.message });
+        console.error('Error fetching updated todo:', err);
+        return res.status(500).json({ error: err.message });
       }
+      // Konversi nilai kembali ke boolean
+      row.isComplete = row.isComplete === 1;
 
-      // Setelah pembaruan, ambil data todo yang diperbarui dari database
-      db.get("SELECT * FROM todos WHERE id = ?", [id], (err, row) => {
-          if (err) {
-              console.error('Error fetching updated todo:', err);
-              return res.status(500).json({ error: err.message });
-          }
-          // Konversi nilai kembali ke boolean
-          row.isComplete = row.isComplete === 1;
+      // Log data yang dikirim kembali ke frontend
+      console.log('Updated todo:', row);
 
-          // Log data yang dikirim kembali ke frontend
-          console.log('Updated todo:', row);
-
-          res.json(row);
-      });
+      res.json(row);
+    });
   });
   stmt.finalize();
 });
-
-
 
 app.delete('/todos/:id', (req, res) => {
   const id = req.params.id;
