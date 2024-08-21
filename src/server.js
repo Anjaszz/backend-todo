@@ -8,7 +8,7 @@ const port = 5000;
 
 // CORS configuration
 const corsOptions = {
-  origin: 'http://localhost:5173', // Allow requests from your frontend URL
+  origin: 'https://my-todo-app-weld-three.vercel.app', // Allow requests from your frontend URL
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type'],
 };
@@ -45,7 +45,7 @@ app.post('/todos', (req, res) => {
   console.log('Creating todo with title:', title);
 
   const stmt = db.prepare("INSERT INTO todos (title, body, isComplete) VALUES (?, ?, ?)");
-  stmt.run(title, body, false, function(err) {
+  stmt.run(title, body, false, function (err) {
     if (err) {
       console.error('Error inserting todo:', err);
       return res.status(500).json({ error: err.message });
@@ -67,7 +67,7 @@ app.put('/todos/:id', (req, res) => {
   const isCompleteValue = isComplete ? 1 : 0;
 
   const stmt = db.prepare("UPDATE todos SET title = ?, body = ?, isComplete = ? WHERE id = ?");
-  stmt.run(title, body, isCompleteValue, id, function(err) {
+  stmt.run(title, body, isCompleteValue, id, function (err) {
     if (err) {
       console.error('Error updating todo:', err);
       return res.status(500).json({ error: err.message });
@@ -96,7 +96,7 @@ app.delete('/todos/:id', (req, res) => {
   console.log('Deleting todo with ID:', id);
 
   const stmt = db.prepare("DELETE FROM todos WHERE id = ?");
-  stmt.run(id, function(err) {
+  stmt.run(id, function (err) {
     if (err) {
       console.error('Error deleting todo:', err);
       return res.status(500).json({ error: err.message });
